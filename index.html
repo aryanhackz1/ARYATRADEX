@@ -29,8 +29,8 @@
       overflow-x: hidden;
     }
 
-    /* ---------- VIDEO BACKGROUND ---------- */
-    .video-bg {
+    /* ---------- GIF BACKGROUND ---------- */
+    .gif-bg {
       position: fixed;
       top: 0;
       left: 0;
@@ -42,7 +42,7 @@
       pointer-events: none;
     }
 
-    .video-overlay {
+    .gif-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -335,11 +335,9 @@
 </head>
 <body>
 
-  <!-- VIDEO BACKGROUND -->
-  <video autoplay muted loop playsinline class="video-bg" id="bgVideo">
-    <source src="bgvideo.mp4" type="video/mp4" />
-  </video>
-  <div class="video-overlay"></div>
+  <!-- GIF BACKGROUND - Auto-play hoti hai by default -->
+  <img src="bgvideo.gif" alt="background" class="gif-bg" />
+  <div class="gif-overlay"></div>
 
   <div class="launch-card">
 
@@ -386,10 +384,10 @@
     </div>
   </div>
 
-  <!-- STRONG AUTO-PLAY SCRIPT -->
+  <!-- Simple JS -->
   <script>
     (function() {
-      // 1. Enforce _blank on cards
+      // Enforce _blank on cards
       const cards = document.querySelectorAll('.action-card');
       cards.forEach(card => {
         if (card.href) {
@@ -397,50 +395,6 @@
           card.setAttribute('rel', 'noopener noreferrer');
         }
       });
-
-      // 2. VIDEO AUTO-PLAY - STRONG METHOD
-      const video = document.getElementById('bgVideo');
-      
-      if (video) {
-        // Set attributes to ensure autoplay
-        video.setAttribute('playsinline', '');
-        video.setAttribute('muted', '');
-        video.setAttribute('autoplay', '');
-        video.setAttribute('loop', '');
-        
-        // Force load and play
-        video.load();
-        
-        // Try to play - if it fails, retry on user interaction
-        function playVideo() {
-          video.play().then(() => {
-            console.log('✅ Video playing');
-          }).catch((error) => {
-            console.log('⏳ Waiting for user interaction...');
-            // Browser blocked autoplay, add one-click fallback
-            document.addEventListener('click', function playOnClick() {
-              video.play().then(() => {
-                console.log('✅ Video playing after click');
-              }).catch(() => {});
-              document.removeEventListener('click', playOnClick);
-            }, { once: true });
-          });
-        }
-        
-        // Wait for metadata to load before playing
-        if (video.readyState >= 2) {
-          playVideo();
-        } else {
-          video.addEventListener('loadedmetadata', playVideo);
-        }
-        
-        // Fallback: if video source fails, try reloading
-        video.addEventListener('error', function() {
-          console.log('⚠️ Video error, attempting reload...');
-          video.load();
-          setTimeout(playVideo, 500);
-        });
-      }
     })();
   </script>
 </body>
