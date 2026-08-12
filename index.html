@@ -24,7 +24,6 @@
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
-      /* fallback background – video will overlay */
       background: #0b0d10;
       position: relative;
       overflow-x: hidden;
@@ -40,10 +39,9 @@
       object-fit: cover;
       z-index: 0;
       filter: brightness(0.55) saturate(1.2);
-      pointer-events: none;  /* so clicks pass through */
+      pointer-events: none;
     }
 
-    /* dark overlay on video (optional, but helps readability) */
     .video-overlay {
       position: fixed;
       top: 0;
@@ -55,7 +53,7 @@
       pointer-events: none;
     }
 
-    /* ---------- CARD (glass) ---------- */
+    /* ---------- CARD ---------- */
     .launch-card {
       position: relative;
       z-index: 2;
@@ -72,7 +70,6 @@
       text-align: center;
     }
 
-    /* logo container */
     .logo-wrapper {
       display: flex;
       flex-direction: column;
@@ -122,7 +119,6 @@
       opacity: 0.7;
     }
 
-    /* action grid */
     .action-grid {
       display: flex;
       flex-direction: column;
@@ -130,7 +126,6 @@
       margin-top: 2.8rem;
     }
 
-    /* rectangular cards */
     .action-card {
       display: flex;
       align-items: center;
@@ -173,7 +168,6 @@
       transition-duration: 0.06s;
     }
 
-    /* icon */
     .card-icon {
       width: 60px;
       height: 60px;
@@ -210,10 +204,10 @@
       flex: 1;
     }
 
-    /* ---- FANCY SCRIPT FONT for titles ---- */
+    /* ---- FANCY SCRIPT FONT ---- */
     .card-title {
       font-family: 'Style Script', cursive;
-      font-size: 1.9rem;          /* bigger & elegant */
+      font-size: 1.9rem;
       font-weight: 400;
       color: #f5ede0;
       letter-spacing: 0.02em;
@@ -253,7 +247,6 @@
       transform: translateX(5px);
     }
 
-    /* telegram card accent */
     .telegram-card .card-icon {
       background: #1f2a36;
     }
@@ -267,7 +260,6 @@
       box-shadow: 0 16px 30px -8px #000000cc, 0 0 0 1px rgba(0, 136, 204, 0.1);
     }
 
-    /* website card accent */
     .website-card .card-icon {
       background: #1f2a2a;
     }
@@ -281,7 +273,6 @@
       box-shadow: 0 16px 30px -8px #000000cc, 0 0 0 1px rgba(255, 180, 50, 0.08);
     }
 
-    /* footer */
     .footer-note {
       margin-top: 2.2rem;
       font-size: 0.7rem;
@@ -300,7 +291,6 @@
       font-weight: 300;
     }
 
-    /* responsive */
     @media (max-width: 480px) {
       .launch-card {
         padding: 1.8rem 1.2rem 2rem;
@@ -322,11 +312,10 @@
         height: 50px;
       }
       .card-title {
-        font-size: 1.6rem;   /* still fancy but smaller on mobile */
+        font-size: 1.6rem;
       }
     }
 
-    /* animated shine (optional) */
     .action-card::after {
       content: '';
       position: absolute;
@@ -346,12 +335,11 @@
 </head>
 <body>
 
-  <!-- VIDEO BACKGROUND (bgvideo.mp4) – autoplay, loop, muted -->
-  <video autoplay muted loop playsinline class="video-bg">
+  <!-- VIDEO BACKGROUND -->
+  <video autoplay muted loop playsinline class="video-bg" id="bgVideo">
     <source src="bgvideo.mp4" type="video/mp4" />
-    <!-- fallback if video missing: it will show black + gradient (but we keep it) -->
   </video>
-  <div class="video-overlay"></div> <!-- dark overlay for better text contrast -->
+  <div class="video-overlay"></div>
 
   <div class="launch-card">
 
@@ -390,18 +378,18 @@
 
     </div>
 
-    <!-- subtle footer -->
+    <!-- footer -->
     <div class="footer-note">
       <span>⚡ ARYATRADEX</span>
-      <span></span>
-      <span></span>
+      <span>•</span>
+      <span>dark • premium</span>
     </div>
   </div>
 
-  <!-- small JS: ensure target _blank, and if video fails, we don't break -->
+  <!-- STRONG AUTO-PLAY SCRIPT -->
   <script>
     (function() {
-      // enforce _blank on cards
+      // 1. Enforce _blank on cards
       const cards = document.querySelectorAll('.action-card');
       cards.forEach(card => {
         if (card.href) {
@@ -410,17 +398,48 @@
         }
       });
 
-      // if video fails to load, we could optionally add a fallback background, but it's fine.
-      const video = document.querySelector('.video-bg');
+      // 2. VIDEO AUTO-PLAY - STRONG METHOD
+      const video = document.getElementById('bgVideo');
+      
       if (video) {
-        // if video source missing, it will just be black – but we have overlay & gradient anyway.
-        // also ensure autoplay on mobile (playsinline)
+        // Set attributes to ensure autoplay
         video.setAttribute('playsinline', '');
         video.setAttribute('muted', '');
         video.setAttribute('autoplay', '');
-        // load and play
+        video.setAttribute('loop', '');
+        
+        // Force load and play
         video.load();
-        video.play().catch(() => { /* ignore autoplay restrictions */ });
+        
+        // Try to play - if it fails, retry on user interaction
+        function playVideo() {
+          video.play().then(() => {
+            console.log('✅ Video playing');
+          }).catch((error) => {
+            console.log('⏳ Waiting for user interaction...');
+            // Browser blocked autoplay, add one-click fallback
+            document.addEventListener('click', function playOnClick() {
+              video.play().then(() => {
+                console.log('✅ Video playing after click');
+              }).catch(() => {});
+              document.removeEventListener('click', playOnClick);
+            }, { once: true });
+          });
+        }
+        
+        // Wait for metadata to load before playing
+        if (video.readyState >= 2) {
+          playVideo();
+        } else {
+          video.addEventListener('loadedmetadata', playVideo);
+        }
+        
+        // Fallback: if video source fails, try reloading
+        video.addEventListener('error', function() {
+          console.log('⚠️ Video error, attempting reload...');
+          video.load();
+          setTimeout(playVideo, 500);
+        });
       }
     })();
   </script>
